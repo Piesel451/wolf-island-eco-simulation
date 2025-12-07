@@ -11,7 +11,7 @@ bool Tile::loadTextures(){
 	return grassLoaded && hedgeLoaded;
 }
 
-Tile::Tile(float x, float y, float size, TileType type)
+Tile::Tile(float x, float y, float size, TileType type)//x,y ->cols,rows
 	: sprite(
 		(type == TileType::Grass) ? grassTexture :
 		hedgeTexture

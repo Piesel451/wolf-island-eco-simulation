@@ -6,7 +6,7 @@
 
 int main()
 {
-    srand(time(0));
+    srand(time(NULL));
 
     if (!Tile::loadTextures() || !Animal::loadTextures()) {
         std::cerr << "Nie uda³o siê za³adowaæ tekstur!" << std::endl;

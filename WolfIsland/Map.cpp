@@ -27,6 +27,21 @@ Tile* Map::getTile(int row, int col) {
 	return &tiles[row][col];
 }
 
+std::pair<int, int> Map::getTileCoordsByOccupant(const Animal* a) {
+	for (int i = 0; i < rows; i++) {
+		for (int j = 0; j < cols; j++) {
+			if (tiles[i][j].getOccupant() == a) {
+				return { i, j };
+			}
+		}
+	}
+	return { -1, -1 }; // nie znaleziono
+}
+
+
+
+//overloaded getTile(by occupant) to get animal that sits there
+
 void Map::draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& animals) {
 	for (auto& row : tiles) {
 		for (auto& tile : row) { 

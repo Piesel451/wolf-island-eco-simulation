@@ -24,6 +24,7 @@ class Animal
 		bool isAlive() const;
 		bool getSex() const;
 		AnimalType getType() const;
+		void setPosition(sf::Vector2f newPosition);
 		sf::Vector2f getPosition() const;
 
 		static bool loadTextures();

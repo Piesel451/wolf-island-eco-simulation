@@ -50,6 +50,10 @@ AnimalType Animal::getType() const {
     return type;
 }
 
+void Animal::setPosition(sf::Vector2f newPosition) {
+    position = newPosition;
+}
+
 sf::Vector2f Animal::getPosition() const {
     return position;
 }

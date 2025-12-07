@@ -45,6 +45,9 @@ void Simulation::spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsN
 }
 
 void Simulation::update() {
+    for (auto& animal : animals) {
+        animal->move(map);
+    }
     window.clear();
     map.draw(window, animals);
     window.display();
@@ -52,7 +55,7 @@ void Simulation::update() {
 
 void Simulation::initialize() {
     window.clear();
-    spawnAnimals(12,4,4); //todo add selecting number of animals before running sim
+    spawnAnimals(10,0,0); //todo add selecting number of animals before running sim
     map.draw(window, animals);
     window.display();
 }
@@ -86,8 +89,9 @@ void Simulation::run() {
 
         float tickLength = tickBase / simulationSpeed; //higher simulationSpeed => faster sim (shorter tick interval)
 
+
         while (accumulator >= tickLength) { //update once, if frame takes too much time we subtract and update untill we catch up with sim
-            std::cout << "One updae" << std::endl;
+            //std::cout << "One updae" << std::endl;
             update();
             accumulator -= tickLength;
         }

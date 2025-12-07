@@ -12,6 +12,7 @@ class Map
 		int getRows() const;
 		int getCols() const;
 		Tile* getTile(int row, int col);
+		std::pair<int, int> getTileCoordsByOccupant(const Animal* a);
 		void draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& animals);
 		float getTileSize() const;
 	private:

@@ -11,17 +11,17 @@ class Simulation
 		void run();
 		void handleEvent();
 		void initialize();
-		void update();
-		void spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsNum);
+
 
 	private:
 		sf::RenderWindow& window;
 		Map map;
 		std::vector<std::unique_ptr<Animal>> animals;
-		//int mapWidth, mapHeight;
-		//float tileSize;
 		float simulationSpeed;
 		template<typename T, typename ...Args> void spawnOneAnimal(Args && ...args);
-
+		void update();
+		void spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsNum);
+		void resolveConflicts();
+		void rabbitReproduction(Map& map);
 };
 

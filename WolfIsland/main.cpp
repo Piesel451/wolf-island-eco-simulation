@@ -1,6 +1,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include "Simulation.h"
+#include <Windows.h>
 #include "Animal.h"
 #include "Tile.h"
 
@@ -12,7 +13,6 @@ int main()
         std::cerr << "Nie uda³o siê za³adowaæ tekstur!" << std::endl;
         return -1;
     }
-
     sf::RenderWindow window(sf::VideoMode({ 1300, 800 }), "Wyspa wilków");
 
     int windowHeight = window.getSize().y;
@@ -24,7 +24,7 @@ int main()
         windowWidth / static_cast<float>(mapCols),
         windowHeight / static_cast<float>(mapRows)
     );
-    float simulationSpeed = 0.1f;
+    float simulationSpeed = 0.04f;
     Simulation simulation(window, simulationSpeed, mapRows, mapCols, tileSize);
     simulation.run();
 }

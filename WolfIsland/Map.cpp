@@ -6,7 +6,8 @@ Map::Map(int rows, int cols, float tileSize) : rows(rows), cols(cols), tileSize(
 	tiles.resize(rows);//create rows
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
-			tiles[i].emplace_back(j * tileSize, i * tileSize, tileSize, TileType::Grass);//TODO add hedge being spawned in lines across the map and water around the map
+			//dodaj tileowi row i col zeby ograniczyc stosowanie getterow z mapy
+			tiles[i].emplace_back(i, j, sf::Vector2f(j * tileSize, i * tileSize), tileSize, TileType::Grass);//TODO add hedge being spawned in lines across the map and water around the map
 		}
 	}
 }
@@ -27,21 +28,6 @@ Tile* Map::getTile(int row, int col) {
 	return &tiles[row][col];
 }
 
-std::pair<int, int> Map::getTileCoordsByOccupant(const Animal* a) {
-	for (int i = 0; i < rows; i++) {
-		for (int j = 0; j < cols; j++) {
-			if (tiles[i][j].getOccupant() == a) {
-				return { i, j };
-			}
-		}
-	}
-	return { -1, -1 }; // nie znaleziono
-}
-
-
-
-//overloaded getTile(by occupant) to get animal that sits there
-
 void Map::draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& animals) {
 	for (auto& row : tiles) {
 		for (auto& tile : row) { 
@@ -50,6 +36,14 @@ void Map::draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& a
 	}
 	for (const auto& a : animals) { //const, cannot modify the pointer itself
 		a->draw(window, *this); //pass map so animal can use tileSize
+	}
+}
+
+void Map::draw(sf::RenderWindow& window) {
+	for (auto& row : tiles) {
+		for (auto& tile : row) {
+			tile.draw(window);
+		}
 	}
 }
 

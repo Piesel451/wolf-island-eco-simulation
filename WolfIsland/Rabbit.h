@@ -6,10 +6,9 @@ class Map;
 class Rabbit : public Animal
 {
 	public:
-        Rabbit(sf::Vector2f position, float energy, bool alive, bool sex);
+        Rabbit(sf::Vector2f position, Tile* currentTile);
         void move(Map& map) override;
-        void eat(Map& map) override;
-        void reproduce(Map& map) override;
+        std::unique_ptr<Animal> reproduce(Map& map) override;
 
 	private:
 

@@ -31,9 +31,13 @@
     <ClInclude Include="Animal.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Rabbit.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Wolf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WolfIsland.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

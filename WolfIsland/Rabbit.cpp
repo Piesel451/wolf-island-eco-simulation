@@ -1,42 +1,51 @@
 #include "Rabbit.h"
 #include "Map.h"
 #include <random>
+#include <iostream>
 
-Rabbit::Rabbit(sf::Vector2f position, float energy, bool alive, bool sex)//TODO remove unnecesary fields from Rabbit constructor
-    : Animal(position, energy, alive, sex, AnimalType::Rabbit)
+Rabbit::Rabbit(sf::Vector2f position, Tile* currentTile)
+    : Animal(position, currentTile, true, AnimalType::Rabbit)
 {
 }
 
-//get tile by occupant(*this animal) it should return row and col of the tile then use tiles vactor from the map to determine which tile around animal is free to move then move
+//w pewnym momencie przestaja chciec sie ruszac dziwne
+//przypatrzeæ siê moze po prostu jest bardzo ma³a szansa na ruch przy zape³nionej mapie
 void Rabbit::move(Map& map) {
-    auto [row, col] = map.getTileCoordsByOccupant(this);
-    Tile* currTile = map.getTile(row, col);
+    Tile* targetTile = randomNearbyTile(map);
 
-    std::pair<int, int> moves[8] = {
-        {row-1, col}, {row-1, col+1}, {row, col+1}, {row+1, col+1},
-        {row+1, col}, {row+1, col-1}, {row, col-1}, {row-1, col-1}
-     };
-
-    static std::mt19937 rng(std::random_device{}()); //modern rand 
-    std::shuffle(std::begin(moves), std::end(moves), rng); //shuffles elements of moves randomly based on rng()
-
-    for (auto [newRow, newCol] : moves) {
-        Tile* newTile = map.getTile(newRow, newCol);
-
-        if (!newTile) continue;
-
-        if (newTile->isAccessible() && newTile->getOccupant() == nullptr) {
-            currTile->setOccupant(nullptr);
-            newTile->setOccupant(this);
-            setPosition(sf::Vector2f(newRow * map.getTileSize(), newCol * map.getTileSize()));
-            return;
-        }
+    if (targetTile == nullptr) {
+        return;
     }
-    
+    else {
+        auto [newRow, newCol] = targetTile->getRowCol();
+        float tileSize = map.getTileSize();
+
+        leaveCurrentTile();
+        enterTile(targetTile);
+
+        position = sf::Vector2f(newCol * tileSize, newRow * tileSize);
+    }
+
 }
 
-void Rabbit::eat(Map& map) {
-}
+std::unique_ptr<Animal> Rabbit::reproduce(Map& map) {
+    if (!currentTile) {
+        return nullptr;
+    }
 
-void Rabbit::reproduce(Map& map) {
+    if (currentTile->occupantsCount() >= 3)
+        return nullptr;
+
+    float tileSize = map.getTileSize();
+    auto [babyRow, babyCol] = currentTile->getRowCol();
+
+    auto baby = std::make_unique<Rabbit>(
+        sf::Vector2f(babyCol * tileSize, babyRow * tileSize),
+        currentTile
+    );
+
+    //od razu occupant na babyTile, ¿eby nie da³o siê tam wstawiæ kogoœ innego w tej samej fazie
+    baby->enterTile(currentTile);
+
+    return baby;
 }

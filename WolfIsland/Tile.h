@@ -11,19 +11,29 @@ enum class TileType{
 class Tile
 {
 	public:
-		Tile(float x, float y, float size, TileType type);
+		Tile(int row, int col, sf::Vector2f position, float size, TileType type);
 		static bool loadTextures();
 		void draw(sf::RenderWindow& window);
 		bool isAccessible() const;
-		Animal* getOccupant() const;
-		void setOccupant(Animal* a);
+
+		const std::vector<Animal*>& getOccupants() const;
+		void addOccupant(Animal* a);
+		void removeOccupant(Animal* a);
+		int  occupantsCount() const;
+		int getOccupantIndex(const Animal* a) const;
+
 		TileType getType() const;
+		std::pair<int, int> getRowCol();
 
 	private:
-		float x, y, size;
+		int row, col;
+		float size;
+		sf::Vector2f position;
 		TileType type;
 		sf::Sprite sprite;
-		Animal* occupant = nullptr; // nullptr = puste pole
+
+		std::vector<Animal*> occupants;
+
 		static sf::Texture hedgeTexture;
 		static sf::Texture grassTexture;
 		

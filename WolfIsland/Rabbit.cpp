@@ -1,15 +1,12 @@
 #include "Rabbit.h"
 #include "Map.h"
-#include <random>
-#include <iostream>
+#include "SimulationConfig.h"
 
-Rabbit::Rabbit(sf::Vector2f position, Tile* currentTile)
-    : Animal(position, currentTile, true, AnimalType::Rabbit)
+Rabbit::Rabbit(sf::Vector2f position, Tile* currentTile, float startingEnergy, float maxEnergy, float energyLoss)
+    : Animal(position, currentTile, true, startingEnergy, maxEnergy, energyLoss, 0.0f, AnimalType::Rabbit)
 {
 }
 
-//w pewnym momencie przestaja chciec sie ruszac dziwne
-//przypatrzeæ siê moze po prostu jest bardzo ma³a szansa na ruch przy zape³nionej mapie
 void Rabbit::move(Map& map) {
     Tile* targetTile = randomNearbyTile(map);
 
@@ -28,7 +25,7 @@ void Rabbit::move(Map& map) {
 
 }
 
-std::unique_ptr<Animal> Rabbit::reproduce(Map& map) {
+std::unique_ptr<Animal> Rabbit::reproduce(Map& map, const SimulationConfig& config) {
     if (!currentTile) {
         return nullptr;
     }
@@ -41,10 +38,12 @@ std::unique_ptr<Animal> Rabbit::reproduce(Map& map) {
 
     auto baby = std::make_unique<Rabbit>(
         sf::Vector2f(babyCol * tileSize, babyRow * tileSize),
-        currentTile
+        currentTile,
+        config.rabbitStartingEnergy,
+        config.rabbitMaxEnergy,
+        config.rabbitEnergyLoss
     );
 
-    //od razu occupant na babyTile, ¿eby nie da³o siê tam wstawiæ kogoœ innego w tej samej fazie
     baby->enterTile(currentTile);
 
     return baby;

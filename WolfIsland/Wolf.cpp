@@ -2,10 +2,10 @@
 #include "Map.h"
 #include <random>
 #include "Rabbit.h"
-#include <iostream>
+#include "SimulationConfig.h"
 
-Wolf::Wolf(sf::Vector2f position, Tile* currentTile, bool sex)
-    : Animal(position, currentTile, sex, AnimalType::Wolf)
+Wolf::Wolf(sf::Vector2f position, Tile* currentTile, bool sex, float startingEnergy, float maxEnergy, float energyLoss, float energyGain)
+    : Animal(position, currentTile, sex, startingEnergy, maxEnergy, energyLoss, energyGain, AnimalType::Wolf)
 {
 }
 
@@ -28,14 +28,19 @@ void Wolf::move(Map& map) {
     position = sf::Vector2f(newCol * tileSize, newRow * tileSize);
 }
 
+std::array<std::pair<int, int>, 8> Wolf::getNeighbourCoords() const {
+    auto [row, col] = currentTile->getRowCol();
+    return { {
+        {row - 1, col}, {row - 1, col + 1}, {row, col + 1}, {row + 1, col + 1},
+        { row + 1, col }, {row + 1, col - 1}, {row, col - 1}, {row - 1, col - 1}
+    } };
+}
+
 
 Tile* Wolf::randomNearbyTile(Map& map) const {
     auto [row, col] = currentTile->getRowCol();
 
-    std::pair<int, int> moves[8] = {
-        {row - 1, col}, {row - 1, col + 1}, {row, col + 1}, {row + 1, col + 1},
-        { row + 1, col }, {row + 1, col - 1}, {row, col - 1}, {row - 1, col - 1}
-    };
+    auto moves = getNeighbourCoords();
 
     static std::mt19937 rng(std::random_device{}());
     std::shuffle(std::begin(moves), std::end(moves), rng); 
@@ -58,11 +63,7 @@ Tile* Wolf::randomNearbyTile(Map& map) const {
 Tile* Wolf::chooseTargetTile(Map& map) {
     auto [row, col] = currentTile->getRowCol();
 
-    std::pair<int, int> moves[8] = {
-    {row - 1, col}, {row - 1, col + 1}, {row, col + 1},
-    {row + 1, col + 1}, {row + 1, col}, {row + 1, col - 1},
-    {row, col - 1}, {row - 1, col - 1}
-    };
+    auto moves = getNeighbourCoords();
 
     for (auto [newRow, newCol] : moves) {
         Tile* targetTile = map.getTile(newRow, newCol);
@@ -70,7 +71,7 @@ Tile* Wolf::chooseTargetTile(Map& map) {
         if (!targetTile || !targetTile->isAccessible() || targetTile->occupantsCount() >= 3) continue;
 
         std::vector<Animal*> nearbyOccupants = targetTile->getOccupants();
-        for (auto& nearbyOccupant : nearbyOccupants) {
+        for (const auto& nearbyOccupant : nearbyOccupants) {
             if (nearbyOccupant) {
                 if (sex == true && nearbyOccupant->getSex() == false && nearbyOccupant->getType() == AnimalType::Wolf) {
                     return targetTile;//pogon za wilczyca
@@ -84,7 +85,7 @@ Tile* Wolf::chooseTargetTile(Map& map) {
     return nullptr;
 }
 
-std::unique_ptr<Animal> Wolf::reproduce(Map& map) {
+std::unique_ptr<Animal> Wolf::reproduce(Map& map, const SimulationConfig & config) {
     bool sex = (rand() % 2 == 0); // 0 = samica, 1 = samiec
 
     if (!currentTile) {
@@ -100,7 +101,11 @@ std::unique_ptr<Animal> Wolf::reproduce(Map& map) {
     auto baby = std::make_unique<Wolf>(
         sf::Vector2f(babyCol * tileSize, babyRow * tileSize),
         currentTile,
-        sex
+        sex,
+        config.wolfStartingEnergy,
+        config.wolfMaxEnergy,
+        config.wolfEnergyLoss,
+        config.wolfEnergyGain
     );
 
     //od razu occupant na babyTile, ¿eby nie da³o siê tam wstawiæ kogoœ innego w tej samej fazie

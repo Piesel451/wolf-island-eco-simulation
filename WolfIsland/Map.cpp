@@ -1,13 +1,11 @@
 #include "Map.h"
-#include "Tile.h"
 #include "Animal.h"
 
 Map::Map(int rows, int cols, float tileSize) : rows(rows), cols(cols), tileSize(tileSize) {
-	tiles.resize(rows);//create rows
+	tiles.resize(rows);
 	for (int i = 0; i < rows; i++) {
 		for (int j = 0; j < cols; j++) {
-			//dodaj tileowi row i col zeby ograniczyc stosowanie getterow z mapy
-			tiles[i].emplace_back(i, j, sf::Vector2f(j * tileSize, i * tileSize), tileSize, TileType::Grass);//TODO add hedge being spawned in lines across the map and water around the map
+			tiles[i].emplace_back(i, j, sf::Vector2f(j * tileSize, i * tileSize), tileSize, TileType::Grass);
 		}
 	}
 }
@@ -20,7 +18,6 @@ int Map::getCols() const {
 	return cols;
 }
 
-//returns a memory address of a specific tile
 Tile* Map::getTile(int row, int col) {
     if (row < 0 || row >= rows || col < 0 || col >= cols)
         return nullptr;
@@ -49,4 +46,8 @@ void Map::draw(sf::RenderWindow& window) {
 
 float Map::getTileSize() const{
 	return tileSize;
+}
+
+float Map::getWidth() const {
+	return cols * tileSize;
 }

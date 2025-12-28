@@ -1,7 +1,8 @@
 #include "Tile.h"
 #include "Animal.h"
+#include <algorithm>
 
-//textures for all Tile instances
+//tekstury dla wszystkich instancji Tile
 sf::Texture Tile::grassTexture;
 sf::Texture Tile::hedgeTexture;
 
@@ -19,8 +20,8 @@ Tile::Tile(int row, int col, sf::Vector2f position, float size, TileType type)
 {
 	sprite.setPosition(position);
 
-	auto texSize = sprite.getTexture().getSize();//pobieramy size oryginalnej tekstury
-	sprite.setScale(sf::Vector2f(size / static_cast<float>(texSize.x), size / static_cast<float>(texSize.y)));//przeszkalowujemy teksture w zale¿noœci od jaki size obliczy³a Map
+	auto texSize = sprite.getTexture().getSize();
+	sprite.setScale(sf::Vector2f(size / static_cast<float>(texSize.x), size / static_cast<float>(texSize.y)));
 }
 
 const std::vector<Animal*>& Tile::getOccupants() const {
@@ -38,6 +39,10 @@ void Tile::removeOccupant(Animal* a) {
 	occupants.erase(occupant, occupants.end());
 }
 
+void Tile::clearOccupants() {
+	occupants.clear();
+}
+
 int Tile::occupantsCount() const {
 	return static_cast<int>(occupants.size());
 }
@@ -50,9 +55,18 @@ int Tile::getOccupantIndex(const Animal* a) const{
 	return -1;
 }
 
+sf::FloatRect Tile::getBounds() const {
+	return sprite.getGlobalBounds();
+}
 
+void Tile::draw(sf::RenderWindow& window) {
+	if (type == TileType::Grass) {
+		sprite.setTexture(grassTexture);
+	}
+	else {
+		sprite.setTexture(hedgeTexture);
+	}
 
-void Tile::draw(sf::RenderWindow& window){
 	window.draw(sprite);
 }
 
@@ -62,6 +76,10 @@ bool Tile::isAccessible() const {
 
 TileType Tile::getType() const {
 	return type;
+}
+
+void Tile::setType(TileType newType) {
+	type = newType;
 }
 
 std::pair<int, int> Tile::getRowCol() {

@@ -1,19 +1,31 @@
-﻿#include <SFML/Graphics.hpp>
-#include <vector>
-#include <memory>
-#include "Simulation.h"
+﻿#include "Simulation.h"
 #include "Rabbit.h"
 #include "Wolf.h"
 #include "Tile.h"
-#include <map>
+#include "SideMenu.h"
 #include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <optional>
+#include <algorithm>
 
-Simulation::Simulation(sf::RenderWindow& window,float simulationSpeed, int mapRows, int mapCols, float tileSize) 
-	: window(window), 
-    simulationSpeed(simulationSpeed), 
-    map(mapRows, mapCols, tileSize){}
 
-//spawns one animal on unoccupied and accesible tiles randomly(helper function)
+Simulation::Simulation(sf::RenderWindow& window, SimulationConfig& config)
+	: window(window), config(config), simSpeed(config.simulationSpeed),
+    map(//licznie tilesize rozbic do funkcji pozniej
+        config.rows, config.cols, 
+        std::min(
+        window.getSize().y / static_cast<float>(config.rows),
+        window.getSize().x / static_cast<float>(config.cols))
+    ){}
+
+
+void Simulation::createAndRun() {
+
+}
+
+
+//spawnuje jedno zwierze na kafelku spełniającym wymagania (helper function)
 template<typename T, typename... Args> void Simulation::spawnOneAnimal(Args&&... args) {
     int randomRow = 0;
     int randomCol = 0;
@@ -29,20 +41,36 @@ template<typename T, typename... Args> void Simulation::spawnOneAnimal(Args&&...
         tile,
         std::forward<Args>(args)...
     );
-    tile->addOccupant(animal.get()); //get() returns the raw pointer without transferring ownership
+    tile->addOccupant(animal.get());
     animals.emplace_back(std::move(animal));
 
 }
 
 void Simulation::spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsNum) {
     for (int i = 0; i < rabbitsNum; i++) {
-        spawnOneAnimal<Rabbit>();
+        spawnOneAnimal<Rabbit>(
+            config.rabbitStartingEnergy,
+            config.rabbitMaxEnergy,
+            config.rabbitEnergyLoss
+        );
     }
     for (int i = 0; i < maleWolfsNum; i++) {
-        spawnOneAnimal<Wolf>(true);
+        spawnOneAnimal<Wolf>(
+            true, 
+            config.wolfStartingEnergy,
+            config.wolfMaxEnergy,
+            config.wolfEnergyLoss,
+            config.wolfEnergyGain
+        );
     }
     for (int i = 0; i < femaleWolfsNum; i++) {
-        spawnOneAnimal<Wolf>(false);
+        spawnOneAnimal<Wolf>(
+            false,
+            config.wolfStartingEnergy,
+            config.wolfMaxEnergy,
+            config.wolfEnergyLoss,
+            config.wolfEnergyGain
+        );
     }
 }
 
@@ -99,9 +127,8 @@ void Simulation::resolveConflicts() {
                 Wolf* male = static_cast<Wolf*>(maleWolves[0]);
                 Wolf* female = static_cast<Wolf*>(femaleWolves[0]);
 
-                auto baby = female->reproduce(map);
+                auto baby = female->reproduce(map, config);
                 if (baby) {
-                    std::cout << "potomek wilkow.\n";
                     newborns.push_back(std::move(baby));
                 }
             }
@@ -120,11 +147,10 @@ void Simulation::rabbitReproduction(Map& map) {
         if (!animal->isAlive()) continue;
         if (animal->getType() != AnimalType::Rabbit) continue;
 
-        if (rand() % 100 < 15 ) {
-            auto baby = animal->reproduce(map);
+        if (rand() % 100 < 15 ) { //TODO dodać wpływ configa na sznase spawnu
+            auto baby = animal->reproduce(map, config);
 
             if (baby) {
-                std::cout << "potomek krolikow.\n";
                 newborns.push_back(std::move(baby));
             }
         }
@@ -134,8 +160,26 @@ void Simulation::rabbitReproduction(Map& map) {
         animals.push_back(std::move(b));
 }
 
+void Simulation::reset() {
+    animals.clear();
+
+    isRunning = false;
+    animalsSpawned = false;
+    isRestart = false;
+
+    for (int r = 0; r < map.getRows(); ++r) {
+        for (int c = 0; c < map.getCols(); ++c) {
+            Tile* tile = map.getTile(r, c);
+            if (!tile) continue;
+
+            tile->setType(TileType::Grass);
+            tile->clearOccupants();
+        }
+    }
+
+}
+
 void Simulation::update() {
-    std::cout << "Update\n";
     // 1. WYKONYWANIE RUCHU (wszyscy wchodzą na nextTile)
     for (auto& animal : animals) {
         if (animal->isAlive()) {
@@ -150,35 +194,91 @@ void Simulation::update() {
     // 4. ROZMNAZANIE KROLIKOW I WILKOW(WRZUCIC DO FUNKCJI)
     rabbitReproduction(map);
 
-    // 5. USUWANIE MARTWYCH moze dac przed wykonywaniem ruchu ? XD
+    // 5. USUWANIE MARTWYCH
     animals.erase(
         std::remove_if(animals.begin(), animals.end(),
             [](const auto& a) { return !a->isAlive(); }),
         animals.end()
     );
-
-    // 6. RYSOWANIE
-    window.clear();
-    map.draw(window, animals);
-    window.display();
 }
 
 void Simulation::initialize() {
     window.clear();
-    spawnAnimals(8,3,3); //TODO add selecting number of animals and energy consumption before running sim(in menu) 
+    auto mapWidth = map.getWidth();
+    auto windowWidth = window.getSize().x;
+    auto windowHeight = window.getSize().y;
+
+    sf::FloatRect sideMenuArea(
+        sf::Vector2f(mapWidth, 0.f),
+        sf::Vector2f(windowWidth - mapWidth, windowHeight)
+    );
+
+    sideMenu = std::make_unique<SideMenu>(sideMenuArea, config);
+
     map.draw(window);
+    sideMenu->draw(window);
     window.display();
 }
 
-void Simulation::handleEvent() {
+//TODO handling eventu klikniecia LPM jesli klinieto to zmien z hednge->grass lub grass->hedge
+void Simulation::handleEvents() {
     while (const std::optional event = window.pollEvent())
     {
         if (event->is<sf::Event::Closed>())
             window.close();
+
+        sideMenu->processEvent(*event, window);//TODO
+
+        if (sideMenu->isRunPressed()) {
+            isRunning = true;
+        }
+        if (sideMenu->isStopPressed()) {
+            isRunning = false;
+        }
+        if (sideMenu->isRestartPressed()) {
+            isRestart = true;
+        }
+        if (sideMenu->isAddAnimalsPressed()) {
+            auto animalsToSpawn = sideMenu->getAnimalsToSpawn();
+            spawnAnimals(animalsToSpawn[0], animalsToSpawn[1], animalsToSpawn[2]);
+        }
+
+        //plot mozna dodawac i usuwac tylko przed wlaczeniem simki
+        //TODO wywalic to do jakiejsc metody
+        if (!isRunning && !animalsSpawned) {
+            if (event->is<sf::Event::MouseButtonPressed>() && event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
+                //kiedy kliknieto w kafelek trawa->zywoplot, zywoplot->trawa
+                int rows = map.getRows();
+                int cols = map.getCols();
+                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
+                Tile* tile;
+                for (int i = 0; i < rows; i++) {
+                    for (int j = 0; j < cols; j++) {
+                        tile = map.getTile(i, j);
+                        if (tile) {
+                            sf::FloatRect bounds = tile->getBounds();
+                            if (bounds.contains(sf::Vector2f(mousePos.x, mousePos.y))) {
+                                if (tile->getType() == TileType::Grass) {
+                                    tile->setType(TileType::Hedge);
+                                    tile->draw(window);
+                                    std::cout << "zmian na zywoplot\n";
+                                }
+                                else {
+                                    tile->setType(TileType::Grass);
+                                    tile->draw(window);
+                                    std::cout << "zmian na trawe\n";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }    
     }
 }
 
-void Simulation::run() {
+void Simulation::start() {
     window.setFramerateLimit(60);
     initialize();
 
@@ -189,23 +289,44 @@ void Simulation::run() {
     float frameTime = clock.restart().asSeconds();
 
     while (window.isOpen()){
-        handleEvent();
+        handleEvents();
+        simSpeed = sideMenu->getSimSpeed();
+
+        if (isRestart) {
+            reset();
+            return;
+        }
+
         frameTime = clock.restart().asSeconds();
         if (frameTime > 0.25f) {// avoid spiral of death(if sim falls behind it needs even more time to catch up causing updates to pile up until it freezes
             frameTime = 0.25f; //if somehow sim missed more than 0,25 seconds lets assume that it only missed 0,25s and skip the rest
         }
 
-        accumulator += frameTime;
+        float tickLength = tickBase / simSpeed; //higher simulationSpeed => faster sim (shorter tick interval)
 
-        float tickLength = tickBase / simulationSpeed; //higher simulationSpeed => faster sim (shorter tick interval)
+        if (isRunning) {
+            // accumulator rośnie TYLKO gdy symulacja chodzi
+            accumulator += frameTime;
+            
+            if (!animalsSpawned) {
+                spawnAnimals(config.rabbitCount, config.maleWolvesCount, config.femaleWolvesCount);
+                animalsSpawned = true;
+            }
 
-
-        while (accumulator >= tickLength) { //update once, if frame takes too much time we subtract and update untill we catch up with sim
-            update();
-            accumulator -= tickLength;
+            while (accumulator >= tickLength) { //update once, if frame takes too much time we subtract and update untill we catch up with sim
+                update();
+                accumulator -= tickLength;
+            }
         }
+        //RYSOWANIE MAPY I MENU (niezależnie od update żeby było płynnie)
+        window.clear();
+        map.draw(window, animals);
+        sideMenu->update(animals);
+        sideMenu->draw(window);
+        window.display();
         
     }
 }
+
 
 //dodawanie w trakcie symulacji

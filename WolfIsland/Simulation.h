@@ -1,27 +1,43 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <vector>
+#include <memory>
 #include "Map.h"
 #include "Animal.h"
-#include <vector>
+#include "SimulationConfig.h"
+#include "SideMenu.h"
 
 class Simulation
 {
 	public:
-		Simulation(sf::RenderWindow& window, float simulationSpeed, int mapRows, int mapCols, float tileSize);
-		void run();
-		void handleEvent();
-		void initialize();
+		Simulation(sf::RenderWindow& window, SimulationConfig& config);
 
+		void start();
+		static void createAndRun();
 
 	private:
+		void handleEvents();
+		void initialize();
+		void update();
+
+		void spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsNum);
+		template<typename T, typename ...Args> void spawnOneAnimal(Args && ...args);
+
+		void resolveConflicts();
+		void rabbitReproduction(Map& map);
+
+		void reset();
+
 		sf::RenderWindow& window;
 		Map map;
 		std::vector<std::unique_ptr<Animal>> animals;
-		float simulationSpeed;
-		template<typename T, typename ...Args> void spawnOneAnimal(Args && ...args);
-		void update();
-		void spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsNum);
-		void resolveConflicts();
-		void rabbitReproduction(Map& map);
+		SimulationConfig& config;
+		std::unique_ptr<SideMenu> sideMenu;
+
+		bool isRunning = false;
+		bool isRestart = false;
+		bool animalsSpawned = false;
+
+		float simSpeed;
 };
 

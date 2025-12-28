@@ -2,15 +2,10 @@
 #include "Map.h"
 #include <random>
 
-//textures for all instances that inherit from Animal
+//tekstury dla wszystkich instancji dziedzicz¹cyh po Animal
 sf::Texture Animal::rabbitTexture;
 sf::Texture Animal::maleWolfTexture;
 sf::Texture Animal::femaleWolfTexture;
-
-//statyczne sta³e energi
-const float Animal::maxEnergy = 100.0f;
-const float Animal::energyCost = 5.0f;
-const float Animal::energyGain = 10.0f;
 
 bool Animal::loadTextures() {
     bool rabbitLoaded = rabbitTexture.loadFromFile("assets/rabbit.png");
@@ -19,13 +14,16 @@ bool Animal::loadTextures() {
     return rabbitLoaded && maleWolfLoaded && femaleWolfLoaded;
 }
 
-Animal::Animal(sf::Vector2f position, Tile* currentTile, bool sex, AnimalType type)
+Animal::Animal(sf::Vector2f position, Tile* currentTile, bool sex, float energy, float maxEnergy, float energyLoss, float energyGain, AnimalType type)
     : type(type),
     position(position),
     currentTile(currentTile),
-    energy(maxEnergy),   // DOMYŒLNA energia
-    alive(true),         // DOMYŒLNY stan ¿ycia
+    alive(true),
     sex(sex),
+    energy(energy),
+    maxEnergy(maxEnergy),
+    energyLoss(energyLoss),
+    energyGain(energyGain),
     sprite(
         (type == AnimalType::Rabbit) ? rabbitTexture :
         (type == AnimalType::Wolf && sex) ? maleWolfTexture :
@@ -145,7 +143,7 @@ void Animal::draw(sf::RenderWindow& window, const Map& map) {
 }
 
 void Animal::consumeEnergy() {
-    energy -= energyCost;
+    energy -= energyLoss;
     if (energy <= 0.0f) {
         energy = 0.0f;
         kill();
@@ -162,8 +160,10 @@ bool Animal::isAlive() const {
 
 void Animal::kill() {
     alive = false;
-    currentTile->removeOccupant(this);
-    currentTile = nullptr;
+    if (currentTile) {
+        currentTile->removeOccupant(this);
+        currentTile = nullptr;
+    }
 }
 
 bool Animal::getSex() const{
@@ -205,11 +205,7 @@ void Animal::leaveCurrentTile() {
     currentTile = nullptr;
 }
 
-
-
 //u¿ywana do losowania pola królikom
-//moze dorobie zeby byla jena wspoldzielona dla wilka tez
-//jedyna roznica to ze wilk nie moze stac w miejscu
 Tile* Animal::randomNearbyTile(Map& map) const {
     auto [row, col] = currentTile->getRowCol();
 

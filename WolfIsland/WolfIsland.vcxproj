@@ -20,19 +20,32 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animal.cpp" />
+    <ClCompile Include="Button.cpp" />
+    <ClCompile Include="ConfigMenu.cpp" />
+    <ClCompile Include="EditableLabel.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Rabbit.cpp" />
+    <ClCompile Include="SideMenu.cpp" />
     <ClCompile Include="Simulation.cpp" />
+    <ClCompile Include="Slider.cpp" />
+    <ClCompile Include="TextLabel.cpp" />
     <ClCompile Include="Tile.cpp" />
     <ClCompile Include="Wolf.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animal.h" />
+    <ClInclude Include="Button.h" />
+    <ClInclude Include="ConfigMenu.h" />
+    <ClInclude Include="EditableLabel.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Rabbit.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SideMenu.h" />
     <ClInclude Include="Simulation.h" />
+    <ClInclude Include="SimulationConfig.h" />
+    <ClInclude Include="Slider.h" />
+    <ClInclude Include="TextLabel.h" />
     <ClInclude Include="Tile.h" />
     <ClInclude Include="Wolf.h" />
   </ItemGroup>
@@ -138,7 +151,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\SFML\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;freetype.lib;opengl32.lib;winmm.lib;gdi32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -156,7 +169,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\SFML\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;opengl32.lib;winmm.lib;gdi32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>sfml-graphics-s-d.lib;sfml-window-s-d.lib;sfml-system-s-d.lib;sfml-audio-s-d.lib;freetype.lib;opengl32.lib;winmm.lib;gdi32.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

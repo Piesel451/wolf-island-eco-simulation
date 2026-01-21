@@ -19,6 +19,8 @@ class Map
 		void draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& animals);
 		void draw(sf::RenderWindow& window);
 
+		void toggleTileType(sf::Vector2i mousePos);
+
 		float getTileSize() const;
 		float getWidth() const;
 

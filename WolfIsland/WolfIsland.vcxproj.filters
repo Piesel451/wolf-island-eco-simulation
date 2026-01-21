@@ -98,10 +98,33 @@
     <ClInclude Include="Slider.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="ResourceLoader.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WolfIsland.rc">
       <Filter>Pliki zasobów</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\femaleWolf.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\Grass(borders).png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\Grass.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\Hedge.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\maleWolf.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
+    <Image Include="assets\rabbit.png">
+      <Filter>Pliki zasobów</Filter>
+    </Image>
   </ItemGroup>
 </Project>

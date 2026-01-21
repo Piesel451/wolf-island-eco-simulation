@@ -1,5 +1,7 @@
 #include "SideMenu.h"
 #include "Animal.h"
+#include "ResourceLoader.h"
+#include "resource.h"
 #include <iostream>
 
 sf::Font SideMenu::font;
@@ -10,7 +12,7 @@ SideMenu::SideMenu(sf::FloatRect area, SimulationConfig& config) : area(area), c
 }
 
 bool SideMenu::loadFont() {
-	bool fontLoaded = font.openFromFile("fonts/arial.ttf");
+    bool fontLoaded = loadFromResource(font, IDR_FONT_ARIAL, L"TTF");
 	return fontLoaded;
 }
 

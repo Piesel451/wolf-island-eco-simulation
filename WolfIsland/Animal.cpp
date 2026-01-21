@@ -1,5 +1,7 @@
 #include "Animal.h"
 #include "Map.h"
+#include "ResourceLoader.h"
+#include "resource.h"
 #include <random>
 
 //tekstury dla wszystkich instancji dziedzicz¹cyh po Animal
@@ -8,9 +10,10 @@ sf::Texture Animal::maleWolfTexture;
 sf::Texture Animal::femaleWolfTexture;
 
 bool Animal::loadTextures() {
-    bool rabbitLoaded = rabbitTexture.loadFromFile("assets/rabbit.png");
-    bool maleWolfLoaded = maleWolfTexture.loadFromFile("assets/maleWolf.png");
-    bool femaleWolfLoaded = femaleWolfTexture.loadFromFile("assets/femaleWolf.png");
+    bool rabbitLoaded = loadFromResource(rabbitTexture, IDR_RABBIT_PNG);
+    bool maleWolfLoaded = loadFromResource(maleWolfTexture, IDR_WOLF_M_PNG);
+    bool femaleWolfLoaded = loadFromResource(femaleWolfTexture, IDR_WOLF_F_PNG);
+
     return rabbitLoaded && maleWolfLoaded && femaleWolfLoaded;
 }
 
@@ -35,110 +38,17 @@ Animal::Animal(sf::Vector2f position, Tile* currentTile, bool sex, float energy,
 
 //to jest do refactoru nie potrzebny mi idx normalnie w zale¿noœci od tego ile zwiarzat na kafelku to tak skalujemy sa 3 opcje
 void Animal::draw(sf::RenderWindow& window, const Map& map) {
+    if (!currentTile) return;
+
+    auto [factor, offset] = currentTile->getSlotTransform(this);
+
+    sf::Vector2u texSize = sprite.getTexture().getSize();
     float tileSize = map.getTileSize();
-    auto texSize = sprite.getTexture().getSize();
-    if (texSize.x == 0 || texSize.y == 0)
-        return;
 
-    // Bazowa pozycja = lewy górny róg kafelka (position to (col * tileSize, row * tileSize))
-    sf::Vector2f tilePos = position;
+    sprite.setScale(sf::Vector2f((tileSize / texSize.x) * factor, (tileSize / texSize.y) * factor));
+    sprite.setOrigin(sf::Vector2f(texSize.x / 2.f, texSize.y / 2.f));
+    sprite.setPosition(currentTile->getBounds().position + offset);
 
-    // Domyœlnie: pe³ny rozmiar kafelka
-    float scaleX = tileSize / static_cast<float>(texSize.x);
-    float scaleY = tileSize / static_cast<float>(texSize.y);
-    sf::Vector2f finalPos = tilePos;
-
-    int count = 1;
-    int idx = 0;
-
-    if (currentTile) {
-        count = currentTile->occupantsCount();
-        idx = currentTile->getOccupantIndex(this);
-        if (idx < 0) idx = 0;
-    }
-
-    // Ustawienia zale¿ne od liczby occupantów
-    switch (count) {
-    case 1:
-        // 1 zwierzak: pe³ny kafel
-        // scaleX/Y ju¿ policzone, pozycja = lewy górny róg kafla
-        finalPos = tilePos;
-        break;
-
-    case 2:
-    {
-        // 2 zwierzaki: dwa mniejsze obok siebie (50% wielkoœci)
-        float factor = 0.5f;
-        scaleX *= factor;
-        scaleY *= factor;
-
-        float spriteWidth = texSize.x * scaleX;
-        float spriteHeight = texSize.y * scaleY;
-
-        // centrowanie w pionie
-        float y = tilePos.y + (tileSize - spriteHeight) * 0.5f;
-
-        if (idx == 0) {
-            // lewy
-            float x = tilePos.x + (tileSize * 0.25f - spriteWidth * 0.5f);
-            finalPos = { x, y };
-        }
-        else {
-            // prawy
-            float x = tilePos.x + (tileSize * 0.75f - spriteWidth * 0.5f);
-            finalPos = { x, y };
-        }
-        break;
-    }
-
-    case 3:
-    {
-        // 3 zwierzaki: trzy jeszcze mniejsze (30%) w trójk¹cie
-        float factor = 0.6f;
-        scaleX *= factor;
-        scaleY *= factor;
-
-        float spriteWidth = texSize.x * scaleX;
-        float spriteHeight = texSize.y * scaleY;
-
-        // Góra-lewo, góra-prawo, dó³-œrodek
-        if (idx == 0) {
-            float x = tilePos.x + (tileSize * 0.25f - spriteWidth * 0.5f);
-            float y = tilePos.y + (tileSize * 0.25f - spriteHeight * 0.5f);
-            finalPos = { x, y };
-        }
-        else if (idx == 1) {
-            float x = tilePos.x + (tileSize * 0.75f - spriteWidth * 0.5f);
-            float y = tilePos.y + (tileSize * 0.25f - spriteHeight * 0.5f);
-            finalPos = { x, y };
-        }
-        else { // idx == 2 lub wiêcej
-            float x = tilePos.x + (tileSize * 0.5f - spriteWidth * 0.5f);
-            float y = tilePos.y + (tileSize * 0.75f - spriteHeight * 0.5f);
-            finalPos = { x, y };
-        }
-        break;
-    }
-
-    default:
-        // >3 – awaryjnie traktujemy jak 3
-    {
-        float factor = 0.6f;
-        scaleX *= factor;
-        scaleY *= factor;
-
-        float spriteWidth = texSize.x * scaleX;
-        float spriteHeight = texSize.y * scaleY;
-
-        float x = tilePos.x + (tileSize * 0.5f - spriteWidth * 0.5f);
-        float y = tilePos.y + (tileSize * 0.5f - spriteHeight * 0.5f);
-        finalPos = { x, y };
-        break;
-    }
-    }
-
-    sprite.setScale(sf::Vector2f(scaleX, scaleY));
-    sprite.setPosition(finalPos);
     window.draw(sprite);
 }
 

@@ -117,8 +117,8 @@ void Simulation::resolveConflicts() {
             // --- WILKI OBU PŁCI (BEZ KRÓLIKÓW) ---
             //jesli wilków jest >2 to potomek nie może powstać (nie ma gdzie)
             if (rabbits.empty() && !maleWolves.empty() && !femaleWolves.empty()) {
-                Wolf* male = static_cast<Wolf*>(maleWolves[0]);
-                Wolf* female = static_cast<Wolf*>(femaleWolves[0]); //TODO moze nie trzeba static casta ? tylko normalnei Animal* ? (chyma mozna Animal* bo reproduce jest virtual)
+                Animal* male = (maleWolves[0]);
+                Animal* female = (femaleWolves[0]);
 
                 auto baby = female->reproduce(map, config);
                 if (baby) {
@@ -140,7 +140,7 @@ void Simulation::rabbitReproduction(Map& map) {
         if (!animal->isAlive()) continue;
         if (animal->getType() != AnimalType::Rabbit) continue;
 
-        if (rand() % 100 < config.rabbitReproduceProb ) { //TODO dodać mozliwosc wpisywania np 15.7%, etc.. zamiast pełnych wartosci
+        if (rand() % 100 < config.rabbitReproduceProb ) {
             auto baby = animal->reproduce(map, config);
 
             if (baby) {
@@ -235,34 +235,10 @@ void Simulation::handleEvents() {
             spawnAnimals(animalsToSpawn[0], animalsToSpawn[1], animalsToSpawn[2]);
         }
 
-        //plot mozna dodawac i usuwac tylko przed wlaczeniem simki
-        //TODO wywalic to do jakiejsc metody
         if (!isRunning && isFirstLaunch) {
             if (event->is<sf::Event::MouseButtonPressed>() && event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
                 //kiedy kliknieto w kafelek trawa->zywoplot, zywoplot->trawa
-                int rows = map.getRows();
-                int cols = map.getCols();
-                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-
-                Tile* tile;
-                for (int i = 0; i < rows; i++) {
-                    for (int j = 0; j < cols; j++) {
-                        tile = map.getTile(i, j);
-                        if (tile) {
-                            sf::FloatRect bounds = tile->getBounds();
-                            if (bounds.contains(sf::Vector2f(mousePos.x, mousePos.y))) {
-                                if (tile->getType() == TileType::Grass) {
-                                    tile->setType(TileType::Hedge);
-                                    tile->draw(window);
-                                }
-                                else {
-                                    tile->setType(TileType::Grass);
-                                    tile->draw(window);
-                                }
-                            }
-                        }
-                    }
-                }
+                map.toggleTileType(sf::Mouse::getPosition(window));     
             }
         }    
     }

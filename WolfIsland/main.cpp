@@ -3,6 +3,7 @@
 #include "Simulation.h"
 #include "ConfigMenu.h"
 
+
 int main()
 {
     std::srand(std::time(nullptr));

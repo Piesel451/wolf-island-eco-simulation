@@ -1,5 +1,7 @@
 #include "Tile.h"
 #include "Animal.h"
+#include "ResourceLoader.h"
+#include "resource.h"
 #include <algorithm>
 
 //tekstury dla wszystkich instancji Tile
@@ -7,8 +9,8 @@ sf::Texture Tile::grassTexture;
 sf::Texture Tile::hedgeTexture;
 
 bool Tile::loadTextures(){
-	bool grassLoaded = grassTexture.loadFromFile("assets/grass(borders).png");
-	bool hedgeLoaded = hedgeTexture.loadFromFile("assets/hedge.png");
+	bool grassLoaded = loadFromResource(grassTexture, IDR_GRASS_B_PNG);
+	bool hedgeLoaded = loadFromResource(hedgeTexture, IDR_HEDGE_PNG);
 	return grassLoaded && hedgeLoaded;
 }
 
@@ -84,6 +86,29 @@ void Tile::setType(TileType newType) {
 
 std::pair<int, int> Tile::getRowCol() {
 	return { row, col };
+}
+
+// zwraca wspó³czynnik skali i przesuniêcie
+std::pair<float, sf::Vector2f> Tile::getSlotTransform(const Animal* a) const {
+	int occ = occupants.size();
+	int myIdx = getOccupantIndex(a);
+	float factor = 1.0f;
+	sf::Vector2f offset(size * 0.5f, size * 0.5f);
+
+	if (occ == 2) {
+		factor = 0.5f;
+		offset.x = (myIdx == 0) ? size * 0.25f : size * 0.75f;
+	}
+	else if (occ >= 3) {
+		factor = 0.5f;
+		if (myIdx == 0)      
+			offset = sf::Vector2f( size * 0.25f, size * 0.25f );
+		else if (myIdx == 1) 
+			offset = sf::Vector2f( size * 0.75f, size * 0.25f );
+		else                 
+			offset = sf::Vector2f( size * 0.50f, size * 0.75f );
+	}
+	return { factor, offset };
 }
 
 

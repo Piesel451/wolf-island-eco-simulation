@@ -33,6 +33,8 @@ class Tile
 
 		std::pair<int, int> getRowCol();
 
+		std::pair<float, sf::Vector2f> getSlotTransform(const Animal* a) const;
+
 	private:
 		int row, col;
 		float size;

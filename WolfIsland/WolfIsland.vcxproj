@@ -41,6 +41,7 @@
     <ClInclude Include="Map.h" />
     <ClInclude Include="Rabbit.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="ResourceLoader.h" />
     <ClInclude Include="SideMenu.h" />
     <ClInclude Include="Simulation.h" />
     <ClInclude Include="SimulationConfig.h" />
@@ -51,6 +52,14 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WolfIsland.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="assets\femaleWolf.png" />
+    <Image Include="assets\Grass(borders).png" />
+    <Image Include="assets\Grass.png" />
+    <Image Include="assets\Hedge.png" />
+    <Image Include="assets\maleWolf.png" />
+    <Image Include="assets\rabbit.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

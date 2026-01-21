@@ -44,6 +44,21 @@ void Map::draw(sf::RenderWindow& window) {
 	}
 }
 
+void Map::toggleTileType(sf::Vector2i mousePos) {
+	int col = static_cast<int>(mousePos.x / tileSize);
+	int row = static_cast<int>(mousePos.y / tileSize);
+
+	Tile* tile = getTile(row, col);
+	if (tile) {
+		if (tile->getType() == TileType::Grass) {
+			tile->setType(TileType::Hedge);
+		}
+		else {
+			tile->setType(TileType::Grass);
+		}
+	}
+}
+
 float Map::getTileSize() const{
 	return tileSize;
 }

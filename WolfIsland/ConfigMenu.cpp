@@ -1,6 +1,5 @@
 #include "ConfigMenu.h"
 #include <iostream>
-
 ConfigMenu::ConfigMenu(sf::RenderWindow& window, SimulationConfig& config) : window(window), config(config)
 {
     initLayout();
@@ -28,37 +27,83 @@ bool ConfigMenu::run() {
         for (const auto& btn : buttons)
             btn.draw(window);
 
+        errorLabel->draw(window);
+
         window.display();
-    }
 
-    if (done) {
-        //zmiana kofiga przekazanego w refencji
-        if (values.size() >= 14) {
-            auto toInt = [](const sf::String& s) {
-                return std::stoi(s.toAnsiString());
-            };
+        if (done) {
+            try {
+                // zmiana configa przekazanego jako refencja
+                if (values.size() >= 14) {
+                    auto toInt = [](const sf::String& s) {
+                        return std::stoi(s.toAnsiString());
+                        };
 
-            auto toFloat = [](const sf::String& s) {
-                return std::stof(s.toAnsiString());
-            };
+                    auto toFloat = [](const sf::String& s) {
+                        return std::stof(s.toAnsiString());
+                        };
 
-            config.rows = toInt(values[0].getString());
-            config.cols = toInt(values[1].getString());
-            config.rabbitCount = toInt(values[2].getString());
-            config.maleWolvesCount = toInt(values[3].getString());
-            config.femaleWolvesCount = toInt(values[4].getString());
+                    int r = toInt(values[0].getString());
+                    int c = toInt(values[1].getString());
+                    int rc = toInt(values[2].getString());
+                    int mwc = toInt(values[3].getString());
+                    int fwc = toInt(values[4].getString());
 
-            config.rabbitStartingEnergy = toFloat(values[5].getString());
-            config.rabbitMaxEnergy = toFloat(values[6].getString());
-            config.rabbitReproduceProb = toFloat(values[7].getString());
-            config.rabbitEnergyLoss = toFloat(values[8].getString());
+                    float rse = toFloat(values[5].getString());
+                    float rme = toFloat(values[6].getString());
+                    float rrp = toFloat(values[7].getString());
+                    float rel = toFloat(values[8].getString());
 
-            config.wolfStartingEnergy = toFloat(values[9].getString());
-            config.wolfMaxEnergy = toFloat(values[10].getString());
-            config.wolfEnergyGain = toFloat(values[11].getString());
-            config.wolfEnergyLoss = toFloat(values[12].getString());
+                    float wse = toFloat(values[9].getString());
+                    float wme = toFloat(values[10].getString());
+                    float weg = toFloat(values[11].getString());
+                    float wel = toFloat(values[12].getString());
 
-            config.simulationSpeed = toFloat(values[13].getString());
+                    float ss = toFloat(values[13].getString());
+
+
+                    if (r <= 1 && c <= 1) {
+                        errorLabel->setString("Mapa musi miec wymiary wieksze od 1x1!");
+                        throw std::runtime_error("Mapa musi miec wymiary wieksze od 1x1!");
+                    }
+                    if (r != c) {
+                        errorLabel->setString("Mapa musi byc kwadratem!");
+                        throw std::runtime_error("Mapa musi byc kwadratem!");
+                    }
+                    if (rc < 0 || mwc < 0 || fwc < 0) {
+                        errorLabel->setString("Liczba zwierzat nie moze byc ujemna!");
+                        throw std::runtime_error("Liczba zwierzat nie moze byc ujemna!");
+                    }
+                    if ((rc + mwc + fwc) > (r * c * 3)) {
+                        errorLabel->setString("Ta liczba zwierzat nie zmiesci sie na tej mapie (max 3 na kafelek)!");
+                        throw std::runtime_error("Ta liczba zwierzat nie zmiesci sie na tej mapie (max 3 na kafelek)!");
+                    }
+
+
+                    config.rows = r;
+                    config.cols = c;
+                    config.rabbitCount = rc;
+                    config.maleWolvesCount = mwc;
+                    config.femaleWolvesCount = fwc;
+
+                    config.rabbitStartingEnergy = rse;
+                    config.rabbitMaxEnergy = rme;
+                    config.rabbitReproduceProb = rrp;
+                    config.rabbitEnergyLoss = rel;
+
+                    config.wolfStartingEnergy = wse;
+                    config.wolfMaxEnergy = wme;
+                    config.wolfEnergyGain = weg;
+                    config.wolfEnergyLoss = wel;
+
+                    config.simulationSpeed = ss;
+                }
+            }
+            catch (const std::exception& e) {
+                errorLabel->setString(std::string("Blad danych: ") + e.what());
+                done = false;
+                std::cout << "Blad danych: " << e.what() << std::endl;
+            }
         }
     }
 
@@ -106,9 +151,7 @@ void ConfigMenu::initLayout() {
     const float valX = left + 320.f;
     values.reserve(labels.size());
 
-    for (int i = 0; i < labels.size(); i++)
-    {
-        // Zak³adam, ¿e TextLabel udostêpnia dostêp do sf::Text przez pole label
+    for (int i = 0; i < labels.size(); i++) {
         const sf::Vector2f pos = labels[i].getPosition();
         values.emplace_back(sf::Vector2f(valX, pos.y), "---", font, 18);
     }
@@ -123,6 +166,9 @@ void ConfigMenu::initLayout() {
         font,
         18
     );
+
+    //error
+    errorLabel = std::make_unique<TextLabel>(sf::Vector2f(left, top + 26.0f * lh), "", font, 24, sf::Color::Red);
 }
 
 void ConfigMenu::initValues() {
@@ -145,9 +191,6 @@ void ConfigMenu::initValues() {
     values[13].setString(std::to_string(config.simulationSpeed));
 }
 
-void ConfigMenu::changeValue(int delta) { // TODO: obsluga zmiany wartosci
-    (void)delta;
-}
 
 void ConfigMenu::handleEvents(bool& done) {
     while (const std::optional event = window.pollEvent())

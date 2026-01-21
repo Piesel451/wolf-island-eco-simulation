@@ -19,14 +19,8 @@ Simulation::Simulation(sf::RenderWindow& window, SimulationConfig& config)
         window.getSize().x / static_cast<float>(config.cols))
     ){}
 
-
-void Simulation::createAndRun() {
-
-}
-
-
 //spawnuje jedno zwierze na kafelku spełniającym wymagania (helper function)
-template<typename T, typename... Args> void Simulation::spawnOneAnimal(Args&&... args) {
+template<typename T, typename... Args> void Simulation::spawnOneAnimal(Args&&... args) { //Reference Collapsing l-value zmienia sie w zwykłą ref. , r-value pozostaje r-value reference (& zawsze dominuje)
     int randomRow = 0;
     int randomCol = 0;
     Tile* tile = nullptr;
@@ -36,10 +30,10 @@ template<typename T, typename... Args> void Simulation::spawnOneAnimal(Args&&...
         tile = map.getTile(randomRow, randomCol);
     } while (!tile->isAccessible() || tile->occupantsCount() >= 3);
 
-    auto animal = std::make_unique<T>( //create animal object on the heap and returns it as unique_ptr
+    auto animal = std::make_unique<T>(
         sf::Vector2f(randomCol * map.getTileSize(), randomRow * map.getTileSize()), 
         tile,
-        std::forward<Args>(args)...
+        std::forward<Args>(args)...//perfect forwarding, zachowujemy kolejnosc argumentow
     );
     tile->addOccupant(animal.get());
     animals.emplace_back(std::move(animal));
@@ -77,8 +71,8 @@ void Simulation::spawnAnimals(int rabbitsNum, int maleWolfsNum, int femaleWolfsN
 void Simulation::resolveConflicts() {
     std::vector<std::unique_ptr<Animal>> newborns;
 
-    for (int r = 0; r < map.getRows(); ++r) {
-        for (int c = 0; c < map.getCols(); ++c) {
+    for (int r = 0; r < map.getRows(); r++) {
+        for (int c = 0; c < map.getCols(); c++) {
             Tile* tile = map.getTile(r, c);
             if (!tile || !tile->isAccessible()) continue;
 
@@ -121,11 +115,10 @@ void Simulation::resolveConflicts() {
             }
 
             // --- WILKI OBU PŁCI (BEZ KRÓLIKÓW) ---
-            //jesli wilków będzie >2 to potomek nie może powstać(nie ma gdzie)
+            //jesli wilków jest >2 to potomek nie może powstać (nie ma gdzie)
             if (rabbits.empty() && !maleWolves.empty() && !femaleWolves.empty()) {
-                //wybieramy 1 pare
                 Wolf* male = static_cast<Wolf*>(maleWolves[0]);
-                Wolf* female = static_cast<Wolf*>(femaleWolves[0]);
+                Wolf* female = static_cast<Wolf*>(femaleWolves[0]); //TODO moze nie trzeba static casta ? tylko normalnei Animal* ? (chyma mozna Animal* bo reproduce jest virtual)
 
                 auto baby = female->reproduce(map, config);
                 if (baby) {
@@ -147,7 +140,7 @@ void Simulation::rabbitReproduction(Map& map) {
         if (!animal->isAlive()) continue;
         if (animal->getType() != AnimalType::Rabbit) continue;
 
-        if (rand() % 100 < 15 ) { //TODO dodać wpływ configa na sznase spawnu
+        if (rand() % 100 < config.rabbitReproduceProb ) { //TODO dodać mozliwosc wpisywania np 15.7%, etc.. zamiast pełnych wartosci
             auto baby = animal->reproduce(map, config);
 
             if (baby) {
@@ -164,7 +157,7 @@ void Simulation::reset() {
     animals.clear();
 
     isRunning = false;
-    animalsSpawned = false;
+    isFirstLaunch = true;
     isRestart = false;
 
     for (int r = 0; r < map.getRows(); ++r) {
@@ -180,7 +173,7 @@ void Simulation::reset() {
 }
 
 void Simulation::update() {
-    // 1. WYKONYWANIE RUCHU (wszyscy wchodzą na nextTile)
+    // 1. WYKONYWANIE RUCHU (wszyscy wchodzą na Tile)
     for (auto& animal : animals) {
         if (animal->isAlive()) {
             animal->move(map);
@@ -220,14 +213,13 @@ void Simulation::initialize() {
     window.display();
 }
 
-//TODO handling eventu klikniecia LPM jesli klinieto to zmien z hednge->grass lub grass->hedge
 void Simulation::handleEvents() {
     while (const std::optional event = window.pollEvent())
     {
         if (event->is<sf::Event::Closed>())
             window.close();
 
-        sideMenu->processEvent(*event, window);//TODO
+        sideMenu->processEvent(*event, window);
 
         if (sideMenu->isRunPressed()) {
             isRunning = true;
@@ -245,7 +237,7 @@ void Simulation::handleEvents() {
 
         //plot mozna dodawac i usuwac tylko przed wlaczeniem simki
         //TODO wywalic to do jakiejsc metody
-        if (!isRunning && !animalsSpawned) {
+        if (!isRunning && isFirstLaunch) {
             if (event->is<sf::Event::MouseButtonPressed>() && event->getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
                 //kiedy kliknieto w kafelek trawa->zywoplot, zywoplot->trawa
                 int rows = map.getRows();
@@ -262,12 +254,10 @@ void Simulation::handleEvents() {
                                 if (tile->getType() == TileType::Grass) {
                                     tile->setType(TileType::Hedge);
                                     tile->draw(window);
-                                    std::cout << "zmian na zywoplot\n";
                                 }
                                 else {
                                     tile->setType(TileType::Grass);
                                     tile->draw(window);
-                                    std::cout << "zmian na trawe\n";
                                 }
                             }
                         }
@@ -308,9 +298,9 @@ void Simulation::start() {
             // accumulator rośnie TYLKO gdy symulacja chodzi
             accumulator += frameTime;
             
-            if (!animalsSpawned) {
+            if (isFirstLaunch) {
                 spawnAnimals(config.rabbitCount, config.maleWolvesCount, config.femaleWolvesCount);
-                animalsSpawned = true;
+                isFirstLaunch = false;
             }
 
             while (accumulator >= tickLength) { //update once, if frame takes too much time we subtract and update untill we catch up with sim
@@ -318,7 +308,7 @@ void Simulation::start() {
                 accumulator -= tickLength;
             }
         }
-        //RYSOWANIE MAPY I MENU (niezależnie od update żeby było płynnie)
+        //RYSOWANIE MAPY I MENU (niezależnie od update żeby było płynnie a nie co tick)
         window.clear();
         map.draw(window, animals);
         sideMenu->update(animals);

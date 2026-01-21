@@ -8,7 +8,7 @@ struct SimulationConfig
 	int rabbitCount = 2;
 	float rabbitStartingEnergy = 100.f;
 	float rabbitMaxEnergy = 100.f;
-	float rabbitReproduceProb = 0.15f;
+	int rabbitReproduceProb = 15;
 	float rabbitEnergyLoss = 5.0f;
 
 	int maleWolvesCount = 1;
@@ -19,6 +19,4 @@ struct SimulationConfig
 	float wolfEnergyLoss = 5.0f;
 
 	float simulationSpeed = 0.04f;
-
-	bool locked = false;//po pierwszym Run nie mo¿na ju¿ zmieniaæ niektorych wartosci
 };

@@ -13,7 +13,6 @@ class Simulation
 		Simulation(sf::RenderWindow& window, SimulationConfig& config);
 
 		void start();
-		static void createAndRun();
 
 	private:
 		void handleEvents();
@@ -36,7 +35,7 @@ class Simulation
 
 		bool isRunning = false;
 		bool isRestart = false;
-		bool animalsSpawned = false;
+		bool isFirstLaunch = true;
 
 		float simSpeed;
 };

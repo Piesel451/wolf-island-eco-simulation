@@ -8,13 +8,15 @@
 #include "SideMenu.h"
 #include <string>
 #include <sstream>
+#include <memory>
+#include <vector>
 
 class ConfigMenu
 {
 public:
     ConfigMenu(sf::RenderWindow& window, SimulationConfig& config);
 
-    // Zwraca true jeœli u¿ytkownik wcisn¹³ Start, false jeœli ESC / zamkn¹³.
+    // zwraca true jeœli u¿ytkownik wcisn¹³ Start, false jeœli zamkn¹³.
     bool run();
 
 private:
@@ -27,10 +29,10 @@ private:
     std::vector<Button> buttons;
 
     EditableLabel* focusedLabel;
+    std::unique_ptr<TextLabel> errorLabel;
 
     void initLayout();
     void initValues();
-    void changeValue(int delta);
     void handleEvents(bool& done);
 };
 

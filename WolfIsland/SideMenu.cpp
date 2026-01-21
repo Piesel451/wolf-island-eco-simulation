@@ -108,7 +108,7 @@ void SideMenu::processEvent(const sf::Event& event, sf::Window& window) {
     restartPressed = false;
     addAnimalsPressed = false;
 
-    //obsluga focusa na editableValuee
+    //obsluga focusa na editableValue
     if (event.is<sf::Event::MouseButtonPressed>() && event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left) {
         sf::Vector2f mousePos(sf::Mouse::getPosition(window));
 
@@ -141,24 +141,20 @@ void SideMenu::processEvent(const sf::Event& event, sf::Window& window) {
             if (i == 0) {
                 //start symulacji
                 runPressed = true;
-                std::cout << "Run pressed\n";
                 return;
             }
             else if (i == 1) {
                 //stop symulacji
-                std::cout << "Stop pressed\n";
                 stopPressed = true;
                 return;
             }
             else if (i == 2) {
                 //restart symulacji
-                std::cout << "Restart pressed\n";
                 restartPressed = true;
                 return;
             }
             else if (i == 3) {
                 //dodanie zwierzat
-                std::cout << "Add pressed\n";
                 addAnimalsPressed = true;
                 return;
             }

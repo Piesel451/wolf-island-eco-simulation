@@ -31,8 +31,8 @@ void Map::draw(sf::RenderWindow& window, std::vector<std::unique_ptr<Animal>>& a
 			tile.draw(window);
 		}
 	}
-	for (const auto& a : animals) { //const, cannot modify the pointer itself
-		a->draw(window, *this); //pass map so animal can use tileSize
+	for (const auto& a : animals) {
+		a->draw(window, *this);
 	}
 }
 

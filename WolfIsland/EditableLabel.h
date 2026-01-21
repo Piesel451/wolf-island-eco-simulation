@@ -16,12 +16,11 @@ class EditableLabel
 		void draw(sf::RenderWindow& window) const;
 
 		void setString(const std::string& newText);
+
 		std::string getString() const;
 
 		void setFocused(bool f);
 		bool isFocused();
-
-		/*void updateDisplayString();*/
 
 	private:
 		sf::Text label;

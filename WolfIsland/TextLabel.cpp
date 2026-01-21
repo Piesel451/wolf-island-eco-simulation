@@ -1,11 +1,11 @@
 #include "TextLabel.h"
 
-TextLabel::TextLabel(const sf::Vector2f& position, const std::string& text, const sf::Font& font, unsigned int charSize) : label(font, text)
+TextLabel::TextLabel(const sf::Vector2f& position, const std::string& text, const sf::Font& font, unsigned int charSize, sf::Color color) : label(font, text)
 {
     label.setFont(font);
     label.setString(text);
     label.setCharacterSize(charSize);
-    label.setFillColor(sf::Color::White);
+    label.setFillColor(color);
     label.setPosition(position);
 }
 
